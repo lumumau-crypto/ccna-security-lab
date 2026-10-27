@@ -1,106 +1,101 @@
-Apuntes CCNA – Capa de red, enrutamiento e IPv4/IPv6 (versión corregida)
-Basados en laboratorios propios en Packet Tracer. Las secciones marcadas con ✅ estaban bien; las marcadas con 🔧 fueron corregidas.
+# Lab 01: Rutas estáticas y ruta predeterminada
 
-1. Características de IP (capa 3)
-✅ IP es sin conexión (cada paquete se envía de forma independiente), de mejor esfuerzo (best effort, no garantiza entrega sin errores) e independiente del medio.
-✅ El método de entrega que no garantiza que el paquete llegue completo y sin errores es mejor esfuerzo. Es una característica de IP: no necesita los datos extra de control que sí usa TCP.
-🔧 Encapsulamiento y capas:
-La capa 4 (transporte) entrega segmentos, que se encapsulan en paquetes IP.
-La capa 3 (red) agrega el encabezado IP (IP origen y destino) y es la que encapsula.
-La capa 2 (enlace de datos) toma el paquete IP y lo prepara para el medio, encapsulándolo en una trama con MAC origen y destino.
-Protocolos usados en esta capa: IPv4, IPv6, OSPF, ICMP.
-🔧 Fragmentación: dividir un paquete IP porque el siguiente medio tiene una MTU menor se llama fragmentación, no segmentación. Segmentación es el término de TCP en la capa 4.
-Campos de IPv4 que se usan para fragmentar: Identification, Flags, Fragment Offset.
-En IPv6 los routers ya no fragmentan, y por eso esos campos no están en el encabezado base.
+**Herramienta:** Cisco Packet Tracer
+**Nivel:** CCNA (enrutamiento básico)
+**Estado:** Completo (falta el análisis en Wireshark)
 
-2. Encabezado IPv4
-✅ Los dos campos más mencionados son IP origen y IP destino (32 bits cada uno).
-✅ Las direcciones IP origen y destino no cambian mientras el paquete viaja (sin NAT).
-✅ El campo que detecta daños es el Header Checksum. Cada router lo recalcula porque el TTL cambia en cada salto.
-✅ El campo Protocol indica qué hay dentro: ICMP (1), TCP (6), UDP (17).
-Ejemplo real: ping a 8.8.8.8 desde Packet Tracer
-Campo	Valor
-Version	4
-Header Length	20 bytes (5)
-DSCP	0x00 (CS0, sin prioridad especial)
-Total Length	60
-Identification	0x19D8
-Flags	0x0
-Fragment Offset	0
-TTL	128
-Protocol	ICMP (1)
-Header Checksum	0x0000 (validación deshabilitada)
-Origen / Destino	192.168.0.14 / 8.8.8.8
-El checksum 0x0000 no es un error: es checksum offloading (la placa lo calcula después de la captura).
-TTL 128 en el request y 116 en el reply sugiere 12 saltos de vuelta. Matiz: el TTL inicial de Google no se conoce (puede ser 64, 128 o 255) y el camino de vuelta puede diferir del de ida, así que es una estimación.
+## 1. Objetivo
 
-3. IPv4 vs IPv6
-✅ IPv6 tiene un encabezado base de 8 campos: Version, Traffic Class, Flow Label, Payload Length, Next Header, Hop Limit, origen y destino.
-✅ Hop Limit reemplaza al TTL y baja 1 por router.
-IPv4	IPv6	Observación del laboratorio
-TTL	Hop Limit	Baja 1 por router
-Protocol	Next Header	ICMPv6 = 0x3A (58)
-DSCP	Traffic Class	
-Header Checksum	No existe	IPv6 delega la verificación a capas superiores
-Identification, Flags, Fragment Offset	No están en el encabezado base	
-Total Length	Payload Length	PL = 108 en la captura
-Direcciones de 32 bits	Direcciones de 128 bits	Ocupan 4 veces más
-No existe	Flow Label	Campo nuevo
-✅ Problemas de IPv4 que IPv6 resuelve: agotamiento de direcciones, falta de conectividad de extremo a extremo (por el uso de NAT) y mayor complejidad de red.
-✅ Mejoras de IPv6: mayor espacio de direcciones, mejor manejo de paquetes y eliminación de la necesidad de NAT.
+- Verificar la comunicación local (misma LAN) y remota (entre LAN A y LAN B).
+- Reemplazar una ruta estática por una ruta predeterminada y comprobar que la conectividad se mantiene.
+- Observar cómo cambian IP, MAC y TTL en cada salto.
 
-4. Cómo enrutan los hosts
-✅ Los hosts de la misma red se comunican sin router (usan ARP y la MAC del destino).
-✅ Si el destino está en otra red, el host usa su puerta de enlace predeterminada: la IP del router en la red local.
-✅ Tabla de enrutamiento en un host Windows: netstat -r o route print (sirven para IPv4 e IPv6).
-Qué cambia en cada salto (comprobado en simulación)
-Dato	¿Cambia entre PC1 y PC3?
-IP origen / destino	No
-MAC origen / destino	Sí, en cada salto
-TTL	Sí, baja 1 por router
-PC1 → PC2 (misma red): TTL 128, ARP resuelve la MAC de PC2.
-PC1 → PC3 (otra red): TTL 126, porque cruza dos routers (Rock1 y Rock2).
-La MAC destino que usa PC1 es la de su gateway (Rock1, ...B501), tanto en IPv4 como en IPv6.
+## 2. Topología y direccionamiento
 
-5. Enrutamiento en un router Cisco
-✅ Ver la tabla: show ip route.
-✅ Código O = ruta aprendida dinámicamente con OSPF.
-✅ Códigos C (red conectada) y L (IP local de la interfaz):
-C 10.0.0.0/30: enlace entre routers.
-L 10.0.0.1/32: IP local de Rock1 en ese enlace.
-C 192.168.1.0/24: LAN A.
-L 192.168.1.1/32: IP de Rock1 en LAN A (gateway de PC1).
-✅ Una ruta estática se configura manualmente. Un router puede combinar rutas estáticas con un protocolo dinámico (ejemplo típico: OSPF dentro de la empresa y ruta estática por defecto hacia el proveedor de internet).
-✅ Distancia administrativa: si hay varias formas de llegar al mismo destino, se prefiere la de menor valor (estática = 1, OSPF = 110).
-🔧 Ruta estática vs. ruta predeterminada
-	Ruta estática	Ruta predeterminada
-Comando	ip route 192.168.2.0 255.255.255.0 10.0.0.2	ip route 0.0.0.0 0.0.0.0 10.0.0.2
-Significado	"Para llegar a esta red concreta, andá por ahí"	"Todo lo que no conozca, mandalo por ahí"
-Código	S	S* (candidata a ruta predeterminada)
-Uso típico	Redes internas específicas	Salida hacia internet (como el router de casa con el ISP)
-Cuando el router elige una ruta, primero usa la coincidencia más específica (prefijo más largo) y después compara la distancia administrativa. La ruta 0.0.0.0/0 es la menos específica, por eso se usa solo si ninguna otra ruta coincide. Si tampoco existe, el paquete se descarta.
-🔧 La puerta de enlace de último recurso no es "la tercera opción después de fallar las primeras tres rutas".
-Lab Rock1 (resultado)
-	Antes	Después
-Ruta	S 192.168.2.0/24 [1/0] via 10.0.0.2	S* 0.0.0.0/0 [1/0] via 10.0.0.2
-Gateway of last resort	not set	10.0.0.2
-Sin ruta hacia LAN B, el ping de PC1 a PC3 fallaba con "Destination host unreachable".
-Con la ruta (estática o predeterminada) el ping funciona con TTL 126.
-Las líneas C y L no cambian.
+![Topología](topologia/topologia.png)
+*Los routers se ven como Router1 y Router2 en el diagrama (nombre de pantalla); sus hostnames configurados son Rock1 y Rock2. La línea punteada entre ellos es un cable cruzado.*
 
-6. NAT e IP públicas/privadas
-🔧 IP pública: única a nivel mundial, enrutable en internet, la asigna el proveedor (ISP).
-🔧 IP privada (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16): no se enruta en internet y se reutiliza en millones de redes.
-🔧 NAT traduce la IP privada de origen por una pública al salir a internet.
-Normalmente se usa PAT (NAT con sobrecarga): además de la IP, usa puertos para saber a qué equipo interno corresponde cada respuesta.
-Con NAT sí cambia la IP origen en el borde de la red. La regla "las IP no cambian" vale para el enrutamiento sin NAT.
-Motivo de existir: el agotamiento de direcciones IPv4.
-🔧 La caché DNS y la caché del navegador no tienen relación con NAT. Son temas aparte: la caché DNS guarda resoluciones nombre→IP, y la del navegador guarda archivos de sitios web.
-Una IP pública no existe "para que todos la usen" ni la privada "para compartir datos": la diferencia es el alcance de enrutamiento, no la seguridad.
+| Dispositivo | Interfaz | Dirección |
+|---|---|---|
+| PC1 | Fa0 | 192.168.1.10/24, GW 192.168.1.1 |
+| PC2 | Fa0 | 192.168.1.20/24 |
+| Rock1 | Gi0/0 | 192.168.1.1/24 (LAN A) |
+| Rock1 | Gi0/1 | 10.0.0.1/30 (enlace con Rock2) |
+| Rock2 | Gi0/0 | 10.0.0.2/30 (enlace con Rock1) |
+| Rock2 | Gi0/1 | 192.168.2.1/24 (LAN B) |
+| PC3 | Fa0 | 192.168.2.10/24 (LAN B) |
+| Server0 | Fa0 | 192.168.2.20/24, GW 192.168.2.1 |
+| Switch0 | 2960-24TT | Conecta PC1, PC2 y Rock1 (LAN A) |
+| Switch1 | 2960-24TT | Conecta Rock2, PC3 y Server0 (LAN B) |
 
-7. Pendientes para mejorar
-[ ] Reordenar el ejercicio PC1 → PC3: "antes de configurar" = unreachable; "después" = 4 respuestas con TTL 126.
-[ ] Verificar la redacción original de las preguntas 1 y 2 de "Características de IP" contra el libro.
-[ ] Agregar capturas de show ip route, arp -a y del encabezado en modo Simulación.
-[ ] Repetir el lab con Wireshark en GNS3 y comparar el TTL.
-ℹ️ Corregí el encabezado original "CCNP cap. 8": este contenido corresponde a CCNA (ITN).
+Configuración de interfaces de Rock2:
+
+![Rock2 show ip interface brief](capturas/05-rock2-show-ip-int-brief.png)
+
+## 3. Comunicación local: PC1 → PC2
+
+PC1 envía el ping a 192.168.1.20 y aprende la MAC de PC2 por ARP.
+
+![PC1 ping PC2](capturas/02-pc1-ping-pc2-arp.png)
+
+- TTL = 128: el paquete no cruza ningún router.
+- La tabla ARP de PC1 pasa a tener dos entradas: el gateway (192.168.1.1) y PC2 (192.168.1.20).
+
+![ipconfig y ARP](capturas/03-pc1-ipconfig-arp.png)
+
+## 4. Comunicación remota: PC1 → PC3
+
+![PC1 ping PC3](capturas/04-pc1-ping-pc3.png)
+
+- **Sin ruta hacia LAN B** en Rock1: el ping falla con *Destination host unreachable*.
+- **Con ruta hacia LAN B:** 4 respuestas con **TTL = 126**.
+- 128 − 126 = 2 saltos: el paquete atraviesa **Rock1 y Rock2**.
+
+## 5. Cambio realizado en Rock1
+
+Se reemplazó la ruta estática por una ruta predeterminada:
+
+```
+Rock1> enable
+Rock1# configure terminal
+Rock1(config)# no ip route 192.168.2.0 255.255.255.0 10.0.0.2
+Rock1(config)# ip route 0.0.0.0 0.0.0.0 10.0.0.2
+Rock1(config)# end
+Rock1# show ip route
+```
+
+![show ip route](capturas/01-rock1-show-ip-route.png)
+
+| | Antes | Después |
+|---|---|---|
+| Ruta | `S 192.168.2.0/24 [1/0] via 10.0.0.2` | `S* 0.0.0.0/0 [1/0] via 10.0.0.2` |
+| Gateway of last resort | not set | 10.0.0.2 |
+
+Las rutas conectadas (`C`) y locales (`L`) no cambian.
+
+## 6. Qué cambia en cada salto
+
+| Dato | ¿Cambia? |
+|---|---|
+| IP origen/destino | No |
+| MAC origen/destino | Sí, en cada salto |
+| TTL | Sí, baja 1 por router |
+
+Observado en modo Simulación: la MAC destino que usa PC1 es la de Rock1 (gateway), y en el tramo siguiente cambian ambas MAC.
+
+## 7. Conclusiones
+
+- Una ruta estática indica cómo llegar a una red concreta. La predeterminada (`0.0.0.0/0`) indica qué hacer con todo lo que el router no conoce.
+- El router prefiere siempre la coincidencia más específica; la ruta predeterminada solo se usa si no hay otra.
+- La ruta predeterminada simplifica la configuración en routers de borde, pero es menos precisa y puede ocultar errores de enrutamiento.
+
+## 8. Pendientes
+
+- [ ] Agregar el archivo `.pkt`
+- [ ] Agregar `configs/Rock1.txt` y `configs/Rock2.txt` (sin contraseñas reales)
+- [ ] Repetir el lab en GNS3 y capturar con Wireshark (filtros `icmp` y `arp`)
+
+## 9. Relación con seguridad
+
+- Una ruta predeterminada mal configurada puede enviar tráfico interno a un destino no deseado.
+- Revisar la tabla de enrutamiento es el primer paso al investigar desvíos de tráfico.
