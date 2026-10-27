@@ -1,0 +1,17 @@
+# Imágenes de máquinas virtuales
+*.iso
+*.vdi
+*.vmdk
+*.qcow2
+*.ova
+# Logs y secretos
+*.log
+.env
+*.key
+*.pem
+id_*
+# Capturas sin sanitizar
+capturas-privadas/
+# Sistema
+.DS_Store
+Thumbs.db
