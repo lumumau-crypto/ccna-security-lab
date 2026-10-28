@@ -36,3 +36,6 @@ Cada laboratorio incluye topología, configuración, evidencia y conclusiones.
 ## Guía de uso de Git
 
 Ver [docs/guia-git-github.md](docs/guia-git-github.md).
+
+
+
