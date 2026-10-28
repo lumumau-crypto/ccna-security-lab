@@ -1,9 +1,7 @@
 # Lab 01: Rutas estáticas y ruta predeterminada
 
 **Herramienta:** Cisco Packet Tracer
-
 **Nivel:** CCNA (enrutamiento básico)
-
 **Estado:** Completo (falta el análisis en Wireshark)
 
 ## 1. Objetivo
@@ -14,10 +12,11 @@
 
 ## 2. Topología y direccionamiento
 
-Topología *Los routers se ven como Router1 y Router2 en el diagrama (nombre de pantalla); sus hostnames configurados son Rock1 y Rock2. La línea punteada entre ellos es un cable cruzado.*
+![Topología](topologia/topologia.png)
+*Los routers se ven como Router1 y Router2 en el diagrama (nombre de pantalla); sus hostnames configurados son Rock1 y Rock2. La línea punteada entre ellos es un cable cruzado.*
 
 | Dispositivo | Interfaz | Dirección |
-| --- | --- | --- |
+|---|---|---|
 | PC1 | Fa0 | 192.168.1.10/24, GW 192.168.1.1 |
 | PC2 | Fa0 | 192.168.1.20/24 |
 | Rock1 | Gi0/0 | 192.168.1.1/24 (LAN A) |
@@ -31,22 +30,22 @@ Topología *Los routers se ven como Router1 y Router2 en el diagrama (nombre de 
 
 Configuración de interfaces de Rock2:
 
-Rock2 show ip interface brief
+![Rock2 show ip interface brief](capturas/05-rock2-show-ip-int-brief.png)
 
 ## 3. Comunicación local: PC1 → PC2
 
 PC1 envía el ping a 192.168.1.20 y aprende la MAC de PC2 por ARP.
 
-PC1 ping PC2
+![PC1 ping PC2](capturas/02-pc1-ping-pc2-arp.png)
 
 - TTL = 128: el paquete no cruza ningún router.
 - La tabla ARP de PC1 pasa a tener dos entradas: el gateway (192.168.1.1) y PC2 (192.168.1.20).
 
-ipconfig y ARP
+![ipconfig y ARP](capturas/03-pc1-ipconfig-arp.png)
 
 ## 4. Comunicación remota: PC1 → PC3
 
-PC1 ping PC3
+![PC1 ping PC3](capturas/04-pc1-ping-pc3.png)
 
 - **Sin ruta hacia LAN B** en Rock1: el ping falla con *Destination host unreachable*.
 - **Con ruta hacia LAN B:** 4 respuestas con **TTL = 126**.
@@ -65,10 +64,10 @@ Rock1(config)# end
 Rock1# show ip route
 ```
 
-show ip route
+![show ip route](capturas/01-rock1-show-ip-route.png)
 
-|  | Antes | Después |
-| --- | --- | --- |
+| | Antes | Después |
+|---|---|---|
 | Ruta | `S 192.168.2.0/24 [1/0] via 10.0.0.2` | `S* 0.0.0.0/0 [1/0] via 10.0.0.2` |
 | Gateway of last resort | not set | 10.0.0.2 |
 
@@ -77,7 +76,7 @@ Las rutas conectadas (`C`) y locales (`L`) no cambian.
 ## 6. Qué cambia en cada salto
 
 | Dato | ¿Cambia? |
-| --- | --- |
+|---|---|
 | IP origen/destino | No |
 | MAC origen/destino | Sí, en cada salto |
 | TTL | Sí, baja 1 por router |
@@ -92,9 +91,9 @@ Observado en modo Simulación: la MAC destino que usa PC1 es la de Rock1 (gatewa
 
 ## 8. Pendientes
 
-- \[ \] Agregar el archivo `.pkt`
-- \[ \] Agregar `configs/Rock1.txt` y `configs/Rock2.txt` (sin contraseñas reales)
-- \[ \] Repetir el lab en GNS3 y capturar con Wireshark (filtros `icmp` y `arp`)
+- [ ] Agregar el archivo `.pkt`
+- [ ] Agregar `configs/Rock1.txt` y `configs/Rock2.txt` (sin contraseñas reales)
+- [ ] Repetir el lab en GNS3 y capturar con Wireshark (filtros `icmp` y `arp`)
 
 ## 9. Relación con seguridad
 
