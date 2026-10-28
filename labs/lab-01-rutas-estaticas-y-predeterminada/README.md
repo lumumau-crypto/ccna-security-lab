@@ -1,8 +1,8 @@
 # Lab 01: Rutas estáticas y ruta predeterminada
 
-**Herramienta:** Cisco Packet Tracer
-**Nivel:** CCNA (enrutamiento básico)
-**Estado:** Completo (falta el análisis en Wireshark)
+- **Herramienta:** Cisco Packet Tracer
+- **Nivel:** CCNA (enrutamiento básico)
+- **Estado:** Completo (falta el análisis en Wireshark)
 
 ## 1. Objetivo
 
