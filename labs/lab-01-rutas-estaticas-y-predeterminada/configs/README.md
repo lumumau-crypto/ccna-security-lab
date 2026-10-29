@@ -14,9 +14,3 @@ Archivos de configuración sanitizados (sin contraseñas ni secretos) de los rou
 
 Para reproducir el lab, pegá el contenido de cada archivo en la consola del router correspondiente en Packet Tracer.
 
-
-
-
-
-
-

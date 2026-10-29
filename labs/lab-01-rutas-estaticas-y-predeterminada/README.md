@@ -4,7 +4,7 @@
 * **Nivel:** CCNA (enrutamiento básico)
 * **Estado:** Completo (Packet Tracer + análisis en Wireshark). Pendiente: archivo `.pkt`
 
-## 1\. Objetivo
+## 1. Objetivo
 
 * Verificar la comunicación local (misma LAN) y remota (entre LAN A y LAN B).
 * Reemplazar una ruta estática por una ruta predeterminada y comprobar que la conectividad se mantiene.
@@ -13,11 +13,11 @@
 * Identificar en capturas reales los campos que identifican el protocolo de capa 4 (`Protocol` en IPv4, `Next Header` en IPv6).
 * Comparar los encabezados IPv4 e IPv6 y el mecanismo de resolución de MAC (ARP vs Neighbor Discovery).
 
-## 2\. Topología y direccionamiento
+## 2. Topología y direccionamiento
 
 Los routers se configuran con los hostnames **Rock1** y **Rock2**, conectados entre sí mediante un cable cruzado.
 
-!\[Topología del laboratorio](topologia/topologia.png)
+![Topología del laboratorio](topologia/topologia.png)
 
 ### Tabla de Direccionamiento IPv4
 
@@ -45,22 +45,22 @@ Los routers se configuran con los hostnames **Rock1** y **Rock2**, conectados en
 
 ### Verificación de interfaces (Rock2)
 
-!\[show ip interface brief en Rock2](capturas/05-rock2-show-ip-int-brief.png)
+![show ip interface brief en Rock2](capturas/05-rock2-show-ip-int-brief.png)
 
-## 3\. Comunicación Local y Remota
+## 3. Comunicación Local y Remota
 
 * **Comunicación Local (PC1 → PC2):** El paquete no cruza ningún router. El valor de **TTL es 128** e IP/MAC origen y destino se mantienen dentro de la misma LAN A.
 * **Comunicación Remota (PC1 → PC3):** Al atravesar los routers Rock1 y Rock2, el paquete experimenta dos saltos, por lo que llega a destino con un **TTL de 126** (128 - 2).
 
 Ping local (PC1 → PC2), TTL 128:
 
-!\[Ping de PC1 a PC2 y tabla ARP](capturas/02-pc1-ping-pc2-arp.png)
+![Ping de PC1 a PC2 y tabla ARP](capturas/02-pc1-ping-pc2-arp.png)
 
 Ping remoto (PC1 → PC3), TTL 126:
 
-!\[Ping de PC1 a PC3](capturas/04-pc1-ping-pc3.png)
+![Ping de PC1 a PC3](capturas/04-pc1-ping-pc3.png)
 
-## 4\. Configuración y Cambio de Ruta en Rock1
+## 4. Configuración y Cambio de Ruta en Rock1
 
 Se retiró la ruta estática específica hacia la LAN B y se implementó una ruta estática predeterminada (`0.0.0.0/0`) apuntando al siguiente salto. También se habilitó el procesamiento global de IPv6:
 
@@ -85,11 +85,11 @@ ipv6 route 2001:DB8:B::/64 2001:DB8:FF::2
 
 Configuraciones completas y sanitizadas (sin contraseñas): [`configs/Rock1.txt`](configs/Rock1.txt) y [`configs/Rock2.txt`](configs/Rock2.txt).
 
-> Nota: en IPv6 se mantiene una ruta \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*específica\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\* hacia `2001:DB8:B::/64`; el cambio a ruta predeterminada se hizo solo en IPv4.
+> Nota: en IPv6 se mantiene una ruta **específica** hacia `2001:DB8:B::/64`; el cambio a ruta predeterminada se hizo solo en IPv4.
 
 ### Tabla de enrutamiento resultante (`show ip route`)
 
-!\[show ip route en Rock1 con la ruta predeterminada](capturas/01-rock1-show-ip-route.png)
+![show ip route en Rock1 con la ruta predeterminada](capturas/01-rock1-show-ip-route.png)
 
 Salida en texto:
 
@@ -102,7 +102,7 @@ L       10.0.0.1/32 is directly connected, GigabitEthernet0/1
      192.168.1.0/24 is variably subnetted, 2 subnets, 2 masks
 C       192.168.1.0/24 is directly connected, GigabitEthernet0/0
 L       192.168.1.1/32 is directly connected, GigabitEthernet0/0
-S\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*   0.0.0.0/0 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\[1/0] via 10.0.0.2
+S*   0.0.0.0/0 [1/0] via 10.0.0.2
 ```
 
 |Código|Tipo|Cómo aparece|Para qué sirve|
@@ -114,11 +114,11 @@ S\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 El router siempre elige la ruta **más específica** que coincide con el destino. La predeterminada (`/0`) coincide con todo, pero es la menos específica, así que solo se usa cuando no hay otra mejor.
 
-## 5\. Verificación con ARP
+## 5. Verificación con ARP
 
 Tabla ARP de PC1 antes y después de los pings:
 
-!\[ipconfig /all y arp -a en PC1](capturas/03-pc1-ipconfig-arp.png)
+![ipconfig /all y arp -a en PC1](capturas/03-pc1-ipconfig-arp.png)
 
 La captura del ping a PC2 (sección 3) muestra la tabla ARP ya con la MAC de PC2.
 
@@ -128,7 +128,7 @@ La captura del ping a PC2 (sección 3) muestra la tabla ARP ya con la MAC de PC2
 
 Esto confirma que, para destinos remotos, la IP destino es la de PC3 pero la MAC destino de la trama es la del gateway.
 
-## 6\. Experimento: ¿qué pasa si PC1 no tiene gateway?
+## 6. Experimento: ¿qué pasa si PC1 no tiene gateway?
 
 Se quitó el gateway de PC1 y se probó:
 
@@ -147,11 +147,11 @@ Se restauró el gateway `192.168.1.1` y el ping a PC3 volvió a responder con TT
 
 **Conclusión:** el gateway solo importa para **salir de la subred**. Sin él, la comunicación local sigue funcionando y la remota se cae.
 
-## 7\. Análisis en Wireshark (red real, sanitizado)
+## 7. Análisis en Wireshark (red real, sanitizado)
 
 Además del laboratorio en Packet Tracer, se capturó tráfico de una PC con Windows en una red doméstica para observar los mismos campos en una red real.
 
-> \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*Nota de privacidad:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\* este documento no incluye direcciones IP reales de la red doméstica, direcciones públicas del proveedor, direcciones IPv6 globales, MACs, nombres de equipos ni capturas completas. Las direcciones de la LAN real se indican con marcadores: `<IP-PC>` (la PC) e `<IP-gateway>` (el router doméstico). Las únicas direcciones públicas que aparecen son servicios conocidos (por ejemplo, DNS público de Google).
+> **Nota de privacidad:** este documento no incluye direcciones IP reales de la red doméstica, direcciones públicas del proveedor, direcciones IPv6 globales, MACs, nombres de equipos ni capturas completas. Las direcciones de la LAN real se indican con marcadores: `<IP-PC>` (la PC) e `<IP-gateway>` (el router doméstico). Las únicas direcciones públicas que aparecen son servicios conocidos (por ejemplo, DNS público de Google).
 
 Filtros usados: `icmp`, `icmp.type == 8`, `icmp.type == 11`, `ip.proto == 6`, `ip.proto == 17`, `udp`, `ipv6.nxt == 6`, `icmpv6`.
 
@@ -200,7 +200,7 @@ Respuestas del ejercicio:
 Detalles del `tracert`:
 
 * **Dos saltos consecutivos con la misma IP:** probablemente un equipo del proveedor que apareció dos veces.
-* **Saltos con `\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\* \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\* \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*`:** ese router descarta el paquete o no responde ICMP tipo 11. El paquete siguió su camino igual; solo ese salto quedó "mudo". Por eso `tracert` depende de que los routers quieran contestar.
+* **Saltos con `* * *`:** ese router descarta el paquete o no responde ICMP tipo 11. El paquete siguió su camino igual; solo ese salto quedó "mudo". Por eso `tracert` depende de que los routers quieran contestar.
 * Algunos routers devuelven mensajes tipo 11 de 134 bytes y otros de 70: citan distinta cantidad del paquete original dentro del mensaje de error.
 
 Pregunta sobre la MAC (filtro `icmp.type == 8`): la MAC destino del Echo Request es la del router, aunque la IP destino esté a 9 saltos. **La MAC solo sirve para llegar al próximo salto**, que es el gateway.
@@ -255,7 +255,7 @@ Se usó el filtro `icmpv6` y `tracert -6` hacia un sitio externo:
 |IP origen/destino constantes|Confirmado en todas las capturas|
 |Inspect PDU en capas 2 y 3|Panel de detalles de Wireshark|
 
-## 8\. Comparación IPv4 vs IPv6
+## 8. Comparación IPv4 vs IPv6
 
 |IPv4|IPv6|Lo que se vio|
 |-|-|-|
@@ -271,7 +271,7 @@ Se usó el filtro `icmpv6` y `tracert -6` hacia un sitio externo:
 
 En la captura de Packet Tracer con IPv6 (Inspect PDU en PC1), la explicación del simulador es que el destino no está en la misma subred, así que **usa el gateway por defecto como siguiente salto**. La MAC destino `00E0.8F3B.B501` es la de Rock1 Gi0/0 (MAC ficticia del simulador). Es la decisión de reenvío del host, ahora en IPv6.
 
-## 9\. Qué cambia en cada salto (Conclusiones)
+## 9. Qué cambia en cada salto (Conclusiones)
 
 |Dato|¿Cambia entre saltos?|
 |-|-|
@@ -288,7 +288,7 @@ En la captura de Packet Tracer con IPv6 (Inspect PDU en PC1), la explicación de
 * **Gateway del host:** sin gateway, un host solo se comunica dentro de su subred.
 * **Protocolo de capa 4:** se identifica con `Protocol` (IPv4) o `Next Header` (IPv6): 1 = ICMP, 6 = TCP, 17 = UDP, 58 = ICMPv6.
 
-## 10\. Relación con Seguridad
+## 10. Relación con Seguridad
 
 * Una ruta predeterminada mal configurada puede generar bucles de enrutamiento o desviar tráfico interno sensible hacia interfaces o redes no deseadas.
 * Auditar las tablas de rutas (`show ip route`) constituye una de las primeras acciones defensivas ante incidentes de redirección de tráfico anómalo.
@@ -299,45 +299,15 @@ En la captura de Packet Tracer con IPv6 (Inspect PDU en PC1), la explicación de
 * **IPv6 y Neighbor Discovery:** sin ARP, el equivalente de spoofing pasa por mensajes NS/NA falsos; por eso conviene conocer los tipos 135/136.
 * **Capturas = datos sensibles:** una captura de red real contiene DNS, IPs y metadatos personales. Por eso este repositorio no publica archivos `.pcap` ni capturas completas.
 
-## 11\. Evidencias y privacidad
+## 11. Evidencias y privacidad
 
 * Se publican capturas de **Packet Tracer** (direcciones ficticias).
 * De Wireshark solo se publican, si es necesario, **recortes del panel de campos IP** (TTL, Protocol, Next Header) sin direcciones reales.
 * No se publican: archivos `.pcap`, `ipconfig /all`, salidas completas de `tracert` ni capturas con MACs, IPv6 globales o IPs del proveedor.
 
-## 12\. Pendientes
+## 12. Pendientes
 
 * Agregar el archivo del laboratorio `.pkt` sanitizado.
 * Verificar la configuración de Rock2 (`configs/Rock2.txt`, rutas de retorno) contra `show running-config` y quitar el aviso del encabezado.
 * Repetir el análisis con tráfico del laboratorio (GNS3 o modo Simulación de Packet Tracer) usando filtros `icmp`, `arp` e `icmpv6`.
 * Probar `ipv6.nxt == 17` y `ip.proto == 17` con el filtro bien aplicado (Enter) para confirmar UDP en ambas versiones.
-
-## Configuraciones
-
-Las configuraciones completas y sanitizadas están en la carpeta [`configs/`](configs/):
-
-* [`Rock1.txt`](configs/Rock1.txt): LAN A, enlace con Rock2 y ruta predeterminada IPv4.
-* [`Rock2.txt`](configs/Rock2.txt): LAN B y rutas de retorno hacia la LAN A.
-
-## Capturas de verificación
-
-### Tabla de rutas en Rock1
-
-!\[show ip route en Rock1](capturas/01-rock1-show-ip-route.png)
-
-### Ping PC1 → PC2 y tabla ARP
-
-!\[Ping PC1 a PC2 y ARP](capturas/02-pc1-ping-pc2-arp.png)
-
-### Configuración IP de PC1 y ARP
-
-!\[ipconfig y ARP en PC1](capturas/03-pc1-ipconfig-arp.png)
-
-### Ping PC1 → PC3 (comunicación remota)
-
-!\[Ping PC1 a PC3](capturas/04-pc1-ping-pc3.png)
-
-### Interfaces de Rock2
-
-!\[show ip interface brief en Rock2](capturas/05-rock2-show-ip-int-brief.png)
-
