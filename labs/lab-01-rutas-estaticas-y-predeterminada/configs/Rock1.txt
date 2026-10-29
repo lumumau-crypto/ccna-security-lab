@@ -1,0 +1,41 @@
+! ============================================================
+! Lab 01 - Rutas estaticas y ruta predeterminada
+! Dispositivo: Rock1 (Cisco 1941, Packet Tracer)
+! Configuracion sanitizada: sin contrasenas ni secretos.
+! ============================================================
+!
+hostname Rock1
+!
+! Procesamiento global de IPv6
+ipv6 unicast-routing
+!
+! LAN A (gateway de PC1 y PC2)
+interface GigabitEthernet0/0
+ description LAN A - gateway de PC1 y PC2
+ ip address 192.168.1.1 255.255.255.0
+ ipv6 address 2001:DB8:A::1/64
+ no shutdown
+!
+! Enlace punto a punto con Rock2
+interface GigabitEthernet0/1
+ description Enlace con Rock2
+ ip address 10.0.0.1 255.255.255.252
+ ipv6 address 2001:DB8:FF::1/64
+ no shutdown
+!
+! --- Cambio de ruta (IPv4) ---
+! Antes: ruta estatica especifica hacia la LAN B
+!   ip route 192.168.2.0 255.255.255.0 10.0.0.2
+! Despues: ruta predeterminada
+no ip route 192.168.2.0 255.255.255.0 10.0.0.2
+ip route 0.0.0.0 0.0.0.0 10.0.0.2
+!
+! Ruta IPv6 especifica hacia la LAN B (no se cambio a predeterminada)
+ipv6 route 2001:DB8:B::/64 2001:DB8:FF::2
+!
+end
+!
+! Verificacion:
+!   show ip route
+!   show ipv6 route
+!   show ip interface brief

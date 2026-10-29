@@ -1,0 +1,38 @@
+! ============================================================
+! Lab 01 - Rutas estaticas y ruta predeterminada
+! Dispositivo: Rock2 (Cisco 1941, Packet Tracer)
+! Configuracion sanitizada: sin contrasenas ni secretos.
+!
+! IMPORTANTE: las rutas de retorno hacia la LAN A (al final)
+! estan inferidas, no copiadas de la consola. Verificar con
+! "show running-config" en Rock2 antes de publicar.
+! ============================================================
+!
+hostname Rock2
+!
+ipv6 unicast-routing
+!
+! Enlace punto a punto con Rock1
+interface GigabitEthernet0/0
+ description Enlace con Rock1
+ ip address 10.0.0.2 255.255.255.252
+ ipv6 address 2001:DB8:FF::2/64
+ no shutdown
+!
+! LAN B (gateway de PC3 y Server0)
+interface GigabitEthernet0/1
+ description LAN B - gateway de PC3 y Server0
+ ip address 192.168.2.1 255.255.255.0
+ ipv6 address 2001:DB8:B::1/64
+ no shutdown
+!
+! --- Rutas de retorno hacia la LAN A (VERIFICAR) ---
+ip route 192.168.1.0 255.255.255.0 10.0.0.1
+ipv6 route 2001:DB8:A::/64 2001:DB8:FF::1
+!
+end
+!
+! Verificacion:
+!   show ip route
+!   show ipv6 route
+!   show ip interface brief
