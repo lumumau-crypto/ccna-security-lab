@@ -2,7 +2,7 @@
 
 - **Herramientas:** Cisco Packet Tracer + Wireshark (sobre red real)
 - **Nivel:** CCNA (enrutamiento básico)
-- **Estado:** Completo (Packet Tracer + análisis en Wireshark). Pendiente: archivos `.pkt` y `configs/`
+- **Estado:** Completo (Packet Tracer + análisis en Wireshark). Pendiente: archivo `.pkt`
 
 ## 1. Objetivo
 
@@ -16,6 +16,8 @@
 ## 2. Topología y direccionamiento
 
 Los routers se configuran con los hostnames **Rock1** y **Rock2**, conectados entre sí mediante un cable cruzado.
+
+![Topología del laboratorio](topologia/topologia.png)
 
 ### Tabla de Direccionamiento IPv4
 
@@ -41,10 +43,22 @@ Los routers se configuran con los hostnames **Rock1** y **Rock2**, conectados en
 | Rock2       | Gi0/1    | 2001:DB8:B::1/64         | N/A                    |
 | PC3         | Fa0      | 2001:DB8:B::10/64        | 2001:DB8:B::1          |
 
+### Verificación de interfaces (Rock2)
+
+![show ip interface brief en Rock2](capturas/05-rock2-show-ip-int-brief.png)
+
 ## 3. Comunicación Local y Remota
 
 - **Comunicación Local (PC1 → PC2):** El paquete no cruza ningún router. El valor de **TTL es 128** e IP/MAC origen y destino se mantienen dentro de la misma LAN A.
 - **Comunicación Remota (PC1 → PC3):** Al atravesar los routers Rock1 y Rock2, el paquete experimenta dos saltos, por lo que llega a destino con un **TTL de 126** (128 - 2).
+
+Ping local (PC1 → PC2), TTL 128:
+
+![Ping de PC1 a PC2 y tabla ARP](capturas/02-pc1-ping-pc2-arp.png)
+
+Ping remoto (PC1 → PC3), TTL 126:
+
+![Ping de PC1 a PC3](capturas/04-pc1-ping-pc3.png)
 
 ## 4. Configuración y Cambio de Ruta en Rock1
 
@@ -69,9 +83,15 @@ ip route 0.0.0.0 0.0.0.0 10.0.0.2
 ipv6 route 2001:DB8:B::/64 2001:DB8:FF::2
 ```
 
+Configuraciones completas y sanitizadas (sin contraseñas): [`configs/Rock1.txt`](configs/Rock1.txt) y [`configs/Rock2.txt`](configs/Rock2.txt).
+
 > Nota: en IPv6 se mantiene una ruta **específica** hacia `2001:DB8:B::/64`; el cambio a ruta predeterminada se hizo solo en IPv4.
 
 ### Tabla de enrutamiento resultante (`show ip route`)
+
+![show ip route en Rock1 con la ruta predeterminada](capturas/01-rock1-show-ip-route.png)
+
+Salida en texto:
 
 ```
 Gateway of last resort is 10.0.0.2 to network 0.0.0.0
@@ -97,6 +117,10 @@ El router siempre elige la ruta **más específica** que coincide con el destino
 ## 5. Verificación con ARP
 
 Tabla ARP de PC1 antes y después de los pings:
+
+![ipconfig /all y arp -a en PC1](capturas/03-pc1-ipconfig-arp.png)
+
+La captura del ping a PC2 (sección 3) muestra la tabla ARP ya con la MAC de PC2.
 
 - Antes de hacer ping a PC2, `arp -a` solo mostraba el gateway (192.168.1.1) con la MAC de la interfaz Gi0/0 de Rock1.
 - Después del ping a PC2 (192.168.1.20) apareció también su MAC.
@@ -284,7 +308,7 @@ En la captura de Packet Tracer con IPv6 (Inspect PDU en PC1), la explicación de
 ## 12. Pendientes
 
 - Agregar el archivo del laboratorio `.pkt` sanitizado.
-- Incorporar los archivos planos de configuración limpia en la carpeta `configs/`.
+- Verificar la configuración de Rock2 (`configs/Rock2.txt`, rutas de retorno) contra `show running-config` y quitar el aviso del encabezado.
 - Agregar capturas de Packet Tracer en `evidence/`.
 - Repetir el análisis con tráfico del laboratorio (GNS3 o modo Simulación de Packet Tracer) usando filtros `icmp`, `arp` e `icmpv6`.
 - Probar `ipv6.nxt == 17` y `ip.proto == 17` con el filtro bien aplicado (Enter) para confirmar UDP en ambas versiones.
