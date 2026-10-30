@@ -1,5 +1,31 @@
 # Lab 01: Rutas estáticas y ruta predeterminada
 
+![Packet Tracer](https://img.shields.io/badge/Cisco-Packet_Tracer-1BA0D7?logo=cisco&logoColor=white)
+![Wireshark](https://img.shields.io/badge/Wireshark-an%C3%A1lisis-1679A7)
+![Nivel](https://img.shields.io/badge/CCNA-enrutamiento_b%C3%A1sico-green)
+![IPv4/IPv6](https://img.shields.io/badge/IPv4-IPv6-blue)
+![Estado](https://img.shields.io/badge/estado-completo_(falta_.pkt)-yellow)
+
+Laboratorio de enrutamiento con dos routers (**Rock1** y **Rock2**) donde se configuran rutas estáticas y una ruta predeterminada en IPv4/IPv6, y luego se **contrasta lo aprendido con tráfico real capturado en Wireshark** (TTL, MAC por salto, campos `Protocol`/`Next Header`, ICMP tipo 11, ARP vs Neighbor Discovery).
+
+## Índice
+
+1. [Objetivo](#1-objetivo)
+2. [Topología y direccionamiento](#2-topología-y-direccionamiento)
+3. [Comunicación local y remota](#3-comunicación-local-y-remota)
+4. [Configuración y cambio de ruta en Rock1](#4-configuración-y-cambio-de-ruta-en-rock1)
+5. [Verificación con ARP](#5-verificación-con-arp)
+6. [Experimento: PC1 sin gateway](#6-experimento-qué-pasa-si-pc1-no-tiene-gateway)
+7. [Análisis en Wireshark (red real, censurado)](#7-análisis-en-wireshark-red-real-sanitizado)
+8. [Comparación IPv4 vs IPv6](#8-comparación-ipv4-vs-ipv6)
+9. [Qué cambia en cada salto](#9-qué-cambia-en-cada-salto-conclusiones)
+10. [Relación con seguridad](#10-relación-con-seguridad)
+11. [Evidencias y privacidad](#11-evidencias-y-privacidad)
+12. [Estructura del repositorio](#12-estructura-del-repositorio)
+13. [Pendientes](#13-pendientes)
+
+---
+
 * **Herramientas:** Cisco Packet Tracer + Wireshark (sobre red real)
 * **Nivel:** CCNA (enrutamiento básico)
 * **Estado:** Completo (Packet Tracer + análisis en Wireshark). Pendiente: archivo `.pkt`
@@ -151,7 +177,9 @@ Se restauró el gateway `192.168.1.1` y el ping a PC3 volvió a responder con TT
 
 Además del laboratorio en Packet Tracer, se capturó tráfico de una PC con Windows en una red doméstica para observar los mismos campos en una red real.
 
-> **Nota de privacidad:** este documento no incluye direcciones IP reales de la red doméstica, direcciones públicas del proveedor, direcciones IPv6 globales, MACs, nombres de equipos ni capturas completas. Las direcciones de la LAN real se indican con marcadores: `<IP-PC>` (la PC) e `<IP-gateway>` (el router doméstico). Las únicas direcciones públicas que aparecen son servicios conocidos (por ejemplo, DNS público de Google).
+> **Nota de privacidad:** el texto de este documento no incluye direcciones IP reales de la red doméstica, direcciones públicas del proveedor, direcciones IPv6 globales, MACs ni nombres de equipos. Las direcciones de la LAN real se indican con marcadores: `<IP-PC>` (la PC) e `<IP-gateway>` (el router doméstico).
+>
+> Las capturas de pantalla publicadas están **censuradas con rectángulos negros sólidos** (no con desenfoque, que puede revertirse): columnas *Source* y *Destination*, MACs y fabricantes, IPs del panel de detalles, identificador de la interfaz de red y panel hexadecimal. No se publica ningún archivo `.pcap`.
 
 Filtros usados: `icmp`, `icmp.type == 8`, `icmp.type == 11`, `ip.proto == 6`, `ip.proto == 17`, `udp`, `ipv6.nxt == 6`, `icmpv6`.
 
@@ -191,6 +219,15 @@ Con el filtro `icmp.type == 8` (Echo Request) y `tracert` hacia un sitio externo
 * Filtrando los tipo 11 cuyo origen es `<IP-gateway>` aparecen **3 paquetes**, los 3 intentos del salto 1. Confirma que el primer router del camino es el gateway.
 * **Echo Reply final** con TTL 115: no es el TTL de la PC sino el que el servidor puso al responder. Si arrancó en 128, hizo unos 13 saltos de vuelta (mismo fenómeno que en el ejercicio A).
 
+Evidencia (capturas censuradas):
+
+|Filtro|Captura|Qué muestra|
+|-|-|-|
+|`icmp.type == 8`|![Echo Request con TTL creciente](capturas/wireshark/09-icmp-type-8.png)|Los Echo Request salen con TTL 1, 2, 3… y cada uno provoca un tipo 11 de un router distinto.|
+|`icmp`|![Traceroute completo](capturas/wireshark/04-icmp-traceroute.png)|Al llegar con TTL 9 aparece el Echo Reply (TTL 115) y termina el recorrido.|
+|`icmp.type == 11`|![Time-to-live exceeded](capturas/wireshark/08-icmp-type-11.png)|Lista de mensajes tipo 11; el detalle muestra el paquete original encapsulado con `Time to Live: 1`.|
+|`icmp.type == 11 && ip.src == <IP-gateway>`|![Tipo 11 del gateway](capturas/wireshark/03-icmp-type-11-gateway.png)|Tres respuestas del primer salto (los 3 intentos): el primer router es el gateway doméstico.|
+
 Respuestas del ejercicio:
 
 1. **Saltos hasta el destino:** 9.
@@ -220,6 +257,14 @@ Preguntas finales:
 |IPv6|`Next Header`|6|TCP|Tráfico entrante de un servidor externo|
 |IPv6|`Next Header`|58|ICMPv6|Echo Request de `tracert -6`|
 
+Evidencia (capturas censuradas):
+
+|Filtro|Captura|Campo a observar|
+|-|-|-|
+|`ip.proto == 6`|![IPv4 con Protocol TCP](capturas/wireshark/07-ip-proto-6.png)|`Protocol: TCP (6)`, TTL 128|
+|`tcp`|![Tráfico TCP](capturas/wireshark/05-tcp.png)|Mismo campo; el filtro `tcp` filtra por protocolo, no por el campo IP|
+|`ipv6.nxt == 6`|![IPv6 con Next Header TCP](capturas/wireshark/02-ipv6-nxt-6.png)|`Next Header: TCP (6)`, `Hop Limit`, `Payload Length: 20`|
+
 Observaciones:
 
 * **TCP/IPv4:** TTL 128 (típico de Windows) y `Header Checksum: 0x0000` con validación deshabilitada (*offloading*). La MAC destino es la del router porque el destino está fuera de la subred.
@@ -235,6 +280,10 @@ Con el filtro `udp` se observó, además del broadcast del router, tráfico típ
 * Las consultas DNS también viajan por **UDP sobre IPv6**.
 
 Estos servicios son relevantes en seguridad (ver sección 10).
+
+![Filtro udp: DNS, NBNS y broadcast del router](capturas/wireshark/06-udp.png)
+
+> En esta captura se ocultó también la columna *Info* porque las consultas DNS revelan los sitios visitados.
 
 ### 7.5 Ejercicio C: IPv6
 
@@ -302,10 +351,31 @@ En la captura de Packet Tracer con IPv6 (Inspect PDU en PC1), la explicación de
 ## 11. Evidencias y privacidad
 
 * Se publican capturas de **Packet Tracer** (direcciones ficticias).
-* De Wireshark solo se publican, si es necesario, **recortes del panel de campos IP** (TTL, Protocol, Next Header) sin direcciones reales.
-* No se publican: archivos `.pcap`, `ipconfig /all`, salidas completas de `tracert` ni capturas con MACs, IPv6 globales o IPs del proveedor.
+* De Wireshark se publican capturas **censuradas** (rectángulos negros sólidos sobre IPs, MACs, fabricantes, GUID de la interfaz y panel hexadecimal), exportadas como PNG aplanado.
+* No se publican: archivos `.pcap`, `ipconfig /all`, salidas completas de `tracert` ni capturas sin censurar.
+* Antes de subir una captura nueva: revisar columnas *Source*/*Destination*, columna *Info* (DNS, HTTP), barra de filtros, línea `Frame … on interface`, línea `Ethernet II` y el panel de bytes.
 
-## 12. Pendientes
+## 12. Estructura del repositorio
+
+```
+lab-01-rutas-estaticas-y-predeterminada/
+├── README.md
+├── topologia/
+│   └── topologia.png
+├── capturas/
+│   ├── 01-rock1-show-ip-route.png
+│   ├── 02-pc1-ping-pc2-arp.png
+│   ├── 03-pc1-ipconfig-arp.png
+│   ├── 04-pc1-ping-pc3.png
+│   ├── 05-rock2-show-ip-int-brief.png
+│   └── wireshark/            # capturas censuradas
+├── configs/
+│   ├── Rock1.txt
+│   └── Rock2.txt
+└── lab-01.pkt                # pendiente
+```
+
+## 13. Pendientes
 
 * Agregar el archivo del laboratorio `.pkt` sanitizado.
 * Verificar la configuración de Rock2 (`configs/Rock2.txt`, rutas de retorno) contra `show running-config` y quitar el aviso del encabezado.

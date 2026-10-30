@@ -15,3 +15,7 @@ capturas-privadas/
 # Sistema
 .DS_Store
 Thumbs.db
+
+*.pcap
+*.pcapng
+*.cap
