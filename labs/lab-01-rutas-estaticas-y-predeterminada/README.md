@@ -221,12 +221,22 @@ Con el filtro `icmp.type == 8` (Echo Request) y `tracert` hacia un sitio externo
 
 Evidencia (capturas censuradas):
 
-|Filtro|Captura|Qué muestra|
-|-|-|-|
-|`icmp.type == 8`|![Echo Request con TTL creciente](capturas/wireshark/09-icmp-type-8.png)|Los Echo Request salen con TTL 1, 2, 3… y cada uno provoca un tipo 11 de un router distinto.|
-|`icmp`|![Traceroute completo](capturas/wireshark/04-icmp-traceroute.png)|Al llegar con TTL 9 aparece el Echo Reply (TTL 115) y termina el recorrido.|
-|`icmp.type == 11`|![Time-to-live exceeded](capturas/wireshark/08-icmp-type-11.png)|Lista de mensajes tipo 11; el detalle muestra el paquete original encapsulado con `Time to Live: 1`.|
-|`icmp.type == 11 && ip.src == <IP-gateway>`|![Tipo 11 del gateway](capturas/wireshark/03-icmp-type-11-gateway.png)|Tres respuestas del primer salto (los 3 intentos): el primer router es el gateway doméstico.|
+**`icmp.type == 8`**: Los Echo Request salen con TTL 1, 2, 3… y cada uno provoca un tipo 11 de un router distinto.
+
+![Echo Request con TTL creciente](capturas/wireshark/09-icmp-type-8.png)
+
+**`icmp`**: Al llegar con TTL 9 aparece el Echo Reply (TTL 115) y termina el recorrido.
+
+![Traceroute completo](capturas/wireshark/04-icmp-traceroute.png)
+
+**`icmp.type == 11`**: Lista de mensajes tipo 11; el detalle muestra el paquete original encapsulado con `Time to Live: 1`.
+
+![Time-to-live exceeded](capturas/wireshark/08-icmp-type-11.png)
+
+**`icmp.type == 11 && ip.src == <IP-gateway>`**: Tres respuestas del primer salto (los 3 intentos): el primer router es el gateway doméstico.
+
+![Tipo 11 del gateway](capturas/wireshark/03-icmp-type-11-gateway.png)
+
 
 Respuestas del ejercicio:
 
@@ -259,11 +269,18 @@ Preguntas finales:
 
 Evidencia (capturas censuradas):
 
-|Filtro|Captura|Campo a observar|
-|-|-|-|
-|`ip.proto == 6`|![IPv4 con Protocol TCP](capturas/wireshark/07-ip-proto-6.png)|`Protocol: TCP (6)`, TTL 128|
-|`tcp`|![Tráfico TCP](capturas/wireshark/05-tcp.png)|Mismo campo; el filtro `tcp` filtra por protocolo, no por el campo IP|
-|`ipv6.nxt == 6`|![IPv6 con Next Header TCP](capturas/wireshark/02-ipv6-nxt-6.png)|`Next Header: TCP (6)`, `Hop Limit`, `Payload Length: 20`|
+**`ip.proto == 6`**: `Protocol: TCP (6)`, TTL 128
+
+![IPv4 con Protocol TCP](capturas/wireshark/07-ip-proto-6.png)
+
+**`tcp`**: Mismo campo; el filtro `tcp` filtra por protocolo, no por el campo IP
+
+![Tráfico TCP](capturas/wireshark/05-tcp.png)
+
+**`ipv6.nxt == 6`**: `Next Header: TCP (6)`, `Hop Limit`, `Payload Length: 20`
+
+![IPv6 con Next Header TCP](capturas/wireshark/02-ipv6-nxt-6.png)
+
 
 Observaciones:
 
