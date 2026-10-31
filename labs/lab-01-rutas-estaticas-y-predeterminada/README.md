@@ -163,6 +163,14 @@ Se quitó el gateway de PC1 y se probó:
 |PC2 (192.168.1.20)|Misma que PC1|**Funciona**, 4/4 respuestas, TTL=128|
 |PC3 (192.168.2.10)|Otra subred|**Falla**, `Request timed out`, 100% perdidos|
 
+Gateway de PC1 borrado (pestaña *Config*, campo *Default Gateway* IPv4 vacío):
+
+![PC1 sin default gateway](capturas/06-pc1-sin-gateway-config.png)
+
+Pings desde PC1 sin gateway: a PC2 responde (TTL=128) y a PC3 expira (100% perdidos):
+
+![Ping de PC1 a PC2 y PC3 sin gateway](capturas/07-pc1-sin-gateway-ping.png)
+
 Interpretación:
 
 * PC2 está en la misma subred, así que PC1 lo alcanza por capa 2 sin necesitar router (TTL=128: no hubo saltos).
@@ -385,6 +393,8 @@ lab-01-rutas-estaticas-y-predeterminada/
 │   ├── 03-pc1-ipconfig-arp.png
 │   ├── 04-pc1-ping-pc3.png
 │   ├── 05-rock2-show-ip-int-brief.png
+│   ├── 06-pc1-sin-gateway-config.png
+│   ├── 07-pc1-sin-gateway-ping.png
 │   └── wireshark/            # capturas censuradas
 ├── configs/
 │   ├── Rock1.txt
